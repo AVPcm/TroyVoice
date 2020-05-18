@@ -5,8 +5,19 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.github.avpcm</groupId>
-    <artifactId>troy-voice</artifactId>
+    <artifactId>troyvoice</artifactId>
     <version>1.0.0</version>
 
-
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>11</source>
+                    <target>11</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

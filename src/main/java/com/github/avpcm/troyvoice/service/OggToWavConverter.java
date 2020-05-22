@@ -2,6 +2,7 @@ package com.github.avpcm.troyvoice.service;
 
 import com.github.avpcm.troyvoice.Application;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -12,6 +13,9 @@ public class OggToWavConverter {
     public Path convert(Path ogg) throws Exception {
         Path library = getLibraryPath();
         Path wav = Paths.get(ogg.getParent().toString(), ogg.getFileName().toString() + ".wav");
+
+        if (Files.exists(wav))
+            return wav;
 
         String command = "cmd /c " + library + " -i " + ogg + " -vn " + wav;
 

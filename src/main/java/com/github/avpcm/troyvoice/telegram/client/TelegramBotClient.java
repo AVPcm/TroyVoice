@@ -7,11 +7,14 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ProxySelector;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.URIParameter;
 import java.time.Duration;
 
 public class TelegramBotClient {
@@ -31,11 +34,11 @@ public class TelegramBotClient {
         if (proxy != null)
             builder.proxy(ProxySelector.of(proxy));
 
-        client = builder.connectTimeout(Duration.ofSeconds(10)).build();
+        client = builder.build();
     }
 
-    public Update[] getUpdates() throws IOException, InterruptedException {
-        URI uri = URI.create("https://api.telegram.org/bot" + botToken + "/getUpdates");
+    public Update[] getUpdates(long lastUpdateId) throws IOException, InterruptedException {
+        URI uri = URI.create("https://api.telegram.org/bot" + botToken + "/getUpdates?offset=" + lastUpdateId);
 
         var request = HttpRequest.newBuilder(uri).build();
         var response = client.send(request, HttpResponse.BodyHandlers.ofString());
@@ -47,6 +50,17 @@ public class TelegramBotClient {
     public Path downloadVoiceMessage(String fileId, Path downloadDirectory) throws IOException, InterruptedException {
         FileInfo fileInfo = getFileInfo(fileId);
         return downloadFile(fileInfo, downloadDirectory);
+    }
+
+    public Message postMessage(long chatId, String message) throws IOException, InterruptedException {
+        String uri = "https://api.telegram.org/bot" + botToken +
+                "/sendMessage?chat_id=" + chatId + "&text=" + URLEncoder.encode(message, StandardCharsets.UTF_8);
+
+        var request = HttpRequest.newBuilder(URI.create(uri)).build();
+        var response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        Message body = new Gson().fromJson(response.body(), Message.class);
+
+        return body;
     }
 
     private FileInfo getFileInfo(String fileId) throws IOException, InterruptedException {

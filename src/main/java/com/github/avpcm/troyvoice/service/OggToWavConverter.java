@@ -1,42 +1,31 @@
 package com.github.avpcm.troyvoice.service;
 
-import com.github.avpcm.troyvoice.Application;
-
-import java.nio.file.Files;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static com.github.avpcm.troyvoice.Application.OperationSystem.WINDOWS;
-
 public class OggToWavConverter {
 
-    public Path convert(Path ogg) throws Exception {
-        Path library = getLibraryPath();
-        Path wav = Paths.get(ogg.getParent().toString(), ogg.getFileName().toString() + ".wav");
+    private final String COMMAND_TEMPLATE = "ffmpeg -i %s %s";
 
-        if (Files.exists(wav))
-            return wav;
+    private final Path wavDir;
 
-        String command = "cmd /c " + library + " -i " + ogg + " -vn " + wav;
+    public OggToWavConverter(Path wavDir) {
+        this.wavDir = wavDir;
+    }
 
-        System.out.println("начинаем конвертацию файла " + ogg + " в " + wav);
-        Process execution = Runtime.getRuntime().exec(command);
-        execution.waitFor();
+    public Path convert(Path ogg) {
+        Path wav = Paths.get(wavDir.toString(), ogg.getFileName().toString().replace(".ogg", ".wav"));
 
-        if (execution.exitValue() == 0) {
-            System.out.println("конвертация успешно завершена");
-        } else {
-            System.out.println("конвертация завершилась с ошибкой: ");
-            execution.getErrorStream().transferTo(System.out);
+        String command = String.format(COMMAND_TEMPLATE, ogg.toAbsolutePath(), wav.toAbsolutePath());
+        try {
+            Process execution = Runtime.getRuntime().exec(command);
+            execution.waitFor();
+        }
+        catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
         }
 
         return wav;
-    }
-
-    private Path getLibraryPath() {
-        if (Application.OS == WINDOWS)
-            return Paths.get("lib/ffmpeg.exe");
-
-        throw new UnsupportedOperationException("отсутствует библиотека ffmpeg для данной ОС");
     }
 }

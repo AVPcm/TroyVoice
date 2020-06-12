@@ -1,24 +1,31 @@
 package com.github.avpcm.troyvoice.telegram.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 
 public class User {
 
+    @JsonProperty("id")
     @SerializedName("id")
     public long id;
 
+    @JsonProperty("is_bot")
     @SerializedName("is_bot")
     public boolean isBot;
 
+    @JsonProperty("first_name")
     @SerializedName("first_name")
     public String firstName;
 
+    @JsonProperty("last_name")
     @SerializedName("last_name")
     public String lastName;
 
-    @SerializedName("user_name")
+    @JsonProperty("username")
+    @SerializedName("username")
     public String userName;
 
+    @JsonProperty("language_code")
     @SerializedName("language_code")
     public String languageCode;
 }

@@ -11,6 +11,8 @@ import java.nio.file.Path;
 
 public class WitApiClient {
 
+    private static final String POST_SPEECH_URI = "https://api.wit.ai/speech";
+
     private String appToken;
 
     private HttpClient client;
@@ -21,9 +23,7 @@ public class WitApiClient {
     }
 
     public TextResponse postSpeech(Path wav) throws Exception {
-        URI uri = URI.create("https://api.wit.ai/speech");
-
-        var request = HttpRequest.newBuilder(uri)
+        var request = HttpRequest.newBuilder(URI.create(POST_SPEECH_URI))
                 .setHeader("Authorization", "Bearer " + appToken)
                 .setHeader("Content-Type", "audio/wav")
                 .POST(HttpRequest.BodyPublishers.ofFile(wav))

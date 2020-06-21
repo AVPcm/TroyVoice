@@ -1,6 +1,7 @@
 package com.github.avpcm.troyvoice;
 
 import com.github.avpcm.troyvoice.service.OggToWavConverter;
+import com.github.avpcm.troyvoice.service.WavProcessingService;
 import com.github.avpcm.troyvoice.telegram.client.TelegramBotClientImpl;
 import com.github.avpcm.troyvoice.wit.client.WitApiClient;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,5 +33,10 @@ public class Application {
     @Bean
     public TelegramBotClientImpl telegramBotClient(@Value("${bot.token}") String token) {
         return new TelegramBotClientImpl(token);
+    }
+
+    @Bean
+    public WavProcessingService wavProcessingService() {
+        return new WavProcessingService();
     }
 }

@@ -1,6 +1,8 @@
 package com.github.avpcm.troyvoice;
 
 import com.github.avpcm.troyvoice.service.OggToWavConverter;
+import com.github.avpcm.troyvoice.service.WavCuttingSilenceReader;
+import com.github.avpcm.troyvoice.service.WavProcessingService;
 import com.github.avpcm.troyvoice.telegram.client.TelegramBotClientImpl;
 import com.github.avpcm.troyvoice.telegram.model.Message;
 import com.github.avpcm.troyvoice.telegram.model.Update;
@@ -14,11 +16,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.sound.sampled.AudioFileFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 @RestController
 public class MainController {
+
+    public static void main(String[] args) throws Exception {
+        File test = new File("c:\\download\\test.wav");
+        File out = new File("c:\\download\\test2.wav");
+
+        AudioInputStream in = AudioSystem.getAudioInputStream(test);
+        AudioSystem.write(new WavCuttingSilenceReader(in), AudioFileFormat.Type.WAVE, out);
+    }
 
     @Autowired
     private WitApiClient witApiClient;
@@ -29,6 +43,9 @@ public class MainController {
     @Autowired
     private OggToWavConverter oggToWavConverter;
 
+    @Autowired
+    private WavProcessingService wavProcessingService;
+
     @RequestMapping(path = "hello", method = RequestMethod.GET)
     public String hello() {
         return "hello!";
@@ -38,7 +55,7 @@ public class MainController {
     public HttpStatus recieveUpdate(@RequestBody Update update) throws Exception {
         Message message = update.message;
 
-        if (message.voice == null)
+        if (message == null || message.voice == null)
             return HttpStatus.OK;
 
         if (message.voice.duration >= 20)
@@ -46,7 +63,9 @@ public class MainController {
 
         Path ogg = telegramBotClientImpl.downloadVoiceMessage(message.voice.fileId);
         Path wav = oggToWavConverter.convert(ogg);
-        TextResponse witResponse = witApiClient.postSpeech(wav);
+        Path cuttedWav = wavProcessingService.cutSilence(wav);
+
+        TextResponse witResponse = witApiClient.postSpeech(cuttedWav);
 
         String sender = getUserAlias(message.from);
         String botMessage = witResponse.error != null
@@ -56,6 +75,7 @@ public class MainController {
         telegramBotClientImpl.postMessage(message.chat.id, botMessage);
         Files.delete(ogg);
         Files.delete(wav);
+        Files.delete(cuttedWav);
 
         return HttpStatus.OK;
     }

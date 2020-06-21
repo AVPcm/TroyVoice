@@ -13,6 +13,14 @@ public class Message {
     @SerializedName("from")
     public User from;
 
+    @JsonProperty("forward_from")
+    @SerializedName(("forward_from"))
+    public User forwardFrom;
+
+    @JsonProperty("forward_sender_name")
+    @SerializedName("forward_sender_name")
+    public String forwardSenderName;
+
     @JsonProperty("chat")
     @SerializedName("chat")
     public Chat chat;

@@ -26,14 +26,6 @@ import java.nio.file.Path;
 @RestController
 public class MainController {
 
-    public static void main(String[] args) throws Exception {
-        File test = new File("c:\\download\\test.wav");
-        File out = new File("c:\\download\\test2.wav");
-
-        AudioInputStream in = AudioSystem.getAudioInputStream(test);
-        AudioSystem.write(new WavCuttingSilenceReader(in), AudioFileFormat.Type.WAVE, out);
-    }
-
     @Autowired
     private WitApiClient witApiClient;
 
@@ -67,10 +59,18 @@ public class MainController {
 
         TextResponse witResponse = witApiClient.postSpeech(cuttedWav);
 
-        String sender = getUserAlias(message.from);
+        String senderInfo = getUserAlias(message.from);
+        if (message.forwardSenderName != null || message.forwardFrom != null) {
+            String forwardInfo = message.forwardFrom == null
+                ? message.forwardSenderName
+                : getUserAlias(message.forwardFrom);
+
+            senderInfo += " -> " + forwardInfo;
+        }
+
         String botMessage = witResponse.error != null
-                ? sender + ": <err: " + witResponse.error + ">"
-                : sender + ": " + witResponse.text;
+                ? senderInfo + ": <err: " + witResponse.error + ">"
+                : senderInfo + ": " + witResponse.text;
 
         telegramBotClientImpl.postMessage(message.chat.id, botMessage);
         Files.delete(ogg);
